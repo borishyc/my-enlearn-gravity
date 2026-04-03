@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LingoLearn - 英文單字卡</title>
+  <meta name="description" content="A beautiful and interactive English vocabulary flashcard app.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    
+    <!-- 首頁 Home View -->
+    <div id="view-home" class="view">
+      <header class="home-header">
+        <button id="btn-go-settings" class="icon-button settings-btn" title="設定 API Key">⚙️</button>
+        <h1>LingoLearn</h1>
+        <p class="subtitle">讓學習英文變得優雅而有趣</p>
+      </header>
+
+      <!-- 搜尋列組件 -->
+      <div class="search-container" style="max-width: 600px; margin: 0 auto 30px auto; position: relative;">
+        <input type="text" id="input-search-vocab" placeholder="🔍 搜尋字庫中的單字或中文..." style="width: 100%; padding: 15px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; font-size: 1.1rem; outline: none;">
+        <div id="search-results" class="search-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(255,255,255,0.95); border-radius: 15px; margin-top: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 250px; overflow-y: auto; z-index: 100;"></div>
+      </div>
+
+      <div class="menu-grid">
+        <div class="menu-card" id="btn-go-flashcard">
+          <div class="menu-icon">📇</div>
+          <h3>單字卡</h3>
+          <p>優雅翻轉，高效率記憶心法</p>
+        </div>
+        <div class="menu-card" id="btn-go-add-vocab">
+          <div class="menu-icon">➕</div>
+          <h3>新增單字</h3>
+          <p>擴充詞彙，客製化您的專屬單字庫</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 單字卡 Flashcard View -->
+    <div id="view-flashcard" class="view hidden">
+      <header class="view-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="back-btn" id="btn-back-flashcard" style="margin: 0;">⬅ 返回首頁</button>
+        <h2 style="margin: 0;">單字卡</h2>
+        <button type="button" class="icon-button" id="btn-edit-card" title="編輯這張單字卡" style="font-size: 1.2rem;">✏️</button>
+      </header>
+
+      <div id="flashcard-complete-msg" class="hidden" style="text-align: center; margin-top: 80px;">
+        <h2 style="font-size: 2rem; color: #00b894; margin-bottom: 20px;">🎉 今日複習完畢！</h2>
+        <p style="color: #636e72; font-size: 1.1rem; margin-bottom: 30px;">您的大腦非常棒，目前沒有任何快要忘記的單字了。</p>
+        <button type="button" class="submit-btn" id="btn-review-random" style="max-width: 250px; margin: 0 auto; background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%); border: none;">🎲 加碼隨機抽考 (破壞間隔)</button>
+      </div>
+
+      <div class="flashcard-container" id="flashcard-wrapper">
+        <div id="flashcard" class="flashcard">
+          <div class="card-face card-front">
+            <div id="card-front-word" class="word">Word</div>
+            <div class="phonetic-container">
+              <span id="card-front-phonetic" class="phonetic">/phonetic/</span>
+              <button id="btn-speak" class="icon-button" title="播放發音" aria-label="Play pronunciation">🔊</button>
+            </div>
+            <div class="hint-text">點擊翻面 (Click to flip)</div>
+          </div>
+          <div class="card-face card-back">
+            <div id="card-back-meaning" class="meaning">意思</div>
+            <div id="card-back-example" class="example">Example sentence.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls" id="srs-controls" style="width: 100%; max-width: 500px; margin: 30px auto; padding: 0 10px; display: flex; flex-direction: column;">
+        <p id="srs-hint" style="text-align: center; color: #636e72; font-size: 0.95rem; margin-bottom: 15px;">※ 翻開背面後即可進行記憶自我評定 ※</p>
+        <div id="srs-buttons-container" style="display: flex; gap: 10px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;">
+          <button class="srs-btn" id="btn-srs-again" style="--c: #ff7675;">🔴 忘記</button>
+          <button class="srs-btn" id="btn-srs-hard" style="--c: #fdcb6e;">🟠 困難</button>
+          <button class="srs-btn" id="btn-srs-easy" style="--c: #0984e3;">🔵 簡單</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新增字庫 Add Vocab View -->
+    <div id="view-add-vocab" class="view hidden">
+      <header class="view-header">
+        <button class="back-btn" id="btn-back-add-vocab">⬅ 返回首頁</button>
+        <h2>新增字庫</h2>
+      </header>
+      
+      <div class="add-vocab-form">
+        <div class="form-group">
+          <label for="input-sentence">請輸入英文例句</label>
+          <textarea id="input-sentence" rows="4" placeholder="例如：The view from the top of the mountain is breathtaking." required></textarea>
+        </div>
+        <div class="form-group" style="margin-top: -10px;">
+          <textarea id="input-example-trans" rows="2" placeholder="例句的中文翻譯將在此自動顯示..." readonly style="background: rgba(0,0,0,0.05);"></textarea>
+        </div>
+        <button type="button" class="submit-btn" id="btn-parse-sentence">🔍 拆解例句</button>
+        
+        <div id="parsed-words-container" class="parsed-words-container hidden">
+          <p class="select-instruction">接著，請點擊您想加入字庫的單字：</p>
+          <div id="word-chips" class="word-chips"></div>
+        </div>
+
+        <div id="word-preview-container" class="word-preview-container hidden">
+          <hr class="divider">
+          <div class="form-group">
+            <label>目標單字</label>
+            <div style="display: flex; gap: 8px;">
+               <input type="text" id="preview-word" readonly style="flex: 1;">
+               <button type="button" id="btn-toggle-root" class="icon-button hidden" style="background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.6); border-radius: 10px; padding: 0 15px; font-size: 0.9rem; font-weight: bold; color: var(--c);">轉為原型</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>音標與詞性 (字典 API)</label>
+            <input type="text" id="preview-phonetic" placeholder="載入中...">
+          </div>
+          <div class="form-group">
+            <label>英文原意 (字典 API)</label>
+            <input type="text" id="preview-english-def" placeholder="載入中...">
+          </div>
+          <div class="form-group">
+            <label>中文翻譯 (翻譯 API)</label>
+            <input type="text" id="preview-meaning" placeholder="載入中...">
+          </div>
+          <div class="form-group">
+            <label>例句</label>
+            <div style="display: flex; gap: 8px;">
+              <textarea id="preview-example-sentence" rows="2" style="flex: 1; resize: none;"></textarea>
+              <button type="button" id="btn-generate-example" class="icon-button" title="隨機產生例句" style="background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.6); border-radius: 10px; width: 45px; height: inherit; display: flex; align-items: center; justify-content: center;">🎲</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>例句翻譯</label>
+            <textarea id="preview-example-trans" rows="2" style="resize: none;"></textarea>
+          </div>
+          <button type="button" class="submit-btn" id="btn-confirm-add" disabled>✅ 確認加入字卡</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 設定 Settings View -->
+    <div id="view-settings" class="view hidden">
+      <header class="view-header">
+        <button class="back-btn" id="btn-back-settings">⬅ 返回首頁</button>
+        <h2>設定</h2>
+      </header>
+      <div class="add-vocab-form">
+        <div class="form-group">
+          <label for="input-api-key">Merriam-Webster API Key (Collegiate Dictionary)</label>
+          <input type="password" id="input-api-key" placeholder="貼上您的 API Key">
+          <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">系統會將此金鑰安全地儲存於您的瀏覽器中。</p>
+        </div>
+        <button type="button" class="submit-btn" id="btn-save-settings">💾 儲存設定</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content glass-panel" style="max-height: 85vh; overflow-y: auto; text-align: left;">
+      <h2 class="title" style="font-size: 1.5rem; margin-bottom: 20px; text-align: center;">編輯單字卡</h2>
+      <div class="form-group">
+        <label>單字</label>
+        <input type="text" id="edit-word" readonly style="background: rgba(0,0,0,0.05); cursor: not-allowed;">
+      </div>
+      <div class="form-group">
+        <label>音標</label>
+        <input type="text" id="edit-phonetic">
+      </div>
+      <div class="form-group">
+        <label>英英解釋</label>
+        <input type="text" id="edit-english-def">
+      </div>
+      <div class="form-group">
+        <label>中文翻譯</label>
+        <input type="text" id="edit-meaning">
+      </div>
+      <div class="form-group">
+        <label>例句清單</label>
+        <div id="edit-examples-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 25px;">
+        <button type="button" id="btn-save-edit" class="submit-btn" style="flex: 2; padding: 12px 10px; font-size: 1rem;">💾 儲存</button>
+        <button type="button" id="btn-delete-card" class="submit-btn" style="flex: 1; padding: 12px 5px; background: #ff7675; border-color: #ff7675; font-size: 1rem;">🗑️ 刪除</button>
+        <button type="button" id="btn-close-edit" class="submit-btn" style="flex: 1; padding: 12px 5px; background: #636e72; border-color: #636e72; font-size: 1rem;">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/compromise"></script>
+  <script src="app.js"></script>
+</body>
+</html>
