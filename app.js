@@ -59,6 +59,13 @@ const importLog = document.getElementById("import-log");
 const inputApiKey = document.getElementById("input-api-key");
 const btnSaveSettings = document.getElementById("btn-save-settings");
 
+const inputSyncUsername = document.getElementById("input-sync-username");
+const inputSyncKey = document.getElementById("input-sync-key");
+const inputSyncBin = document.getElementById("input-sync-bin");
+const syncStatus = document.getElementById("sync-status");
+const btnSyncDown = document.getElementById("btn-sync-down");
+const btnSyncUp = document.getElementById("btn-sync-up");
+
 const inputSearchVocab = document.getElementById("input-search-vocab");
 const searchResults = document.getElementById("search-results");
 
@@ -451,15 +458,154 @@ btnBackAddVocab.addEventListener("click", () => showView(viewHome));
 btnBackSettings.addEventListener("click", () => showView(viewHome));
 btnBackImportVocab.addEventListener("click", () => showView(viewHome));
 
-// --- Settings Logic ---
+// --- Settings & Cloud Sync Logic ---
 let mwaApiKey = localStorage.getItem("mwa_api_key") || "";
 inputApiKey.value = mwaApiKey;
+
+let syncUsername = localStorage.getItem("sync_username") || "";
+let syncKey = localStorage.getItem("sync_key") || "";
+let syncBin = localStorage.getItem("sync_bin") || "";
+
+inputSyncUsername.value = syncUsername;
+inputSyncKey.value = syncKey;
+inputSyncBin.value = syncBin;
+
+function updateSyncStatusUI() {
+  if (syncKey && syncBin) {
+    syncStatus.innerHTML = `🟢 狀態：已登入 (${syncUsername || "使用者"})<br><span style="font-size:0.8rem;color:#666;">📝 綁定 Bin ID: ${syncBin}</span>`;
+    syncStatus.style.color = "#00b894";
+    syncStatus.style.background = "rgba(0, 184, 148, 0.1)";
+  } else if (syncKey) {
+    syncStatus.innerHTML = `🟡 狀態：已綁定 Key，但缺乏 Bin ID (請備份至雲端以產生)`;
+    syncStatus.style.color = "#fdcb6e";
+    syncStatus.style.background = "rgba(253, 203, 110, 0.1)";
+  } else {
+    syncStatus.innerHTML = `⚪ 狀態：未綁定雲端`;
+    syncStatus.style.color = "#d63031";
+    syncStatus.style.background = "rgba(214, 48, 49, 0.1)";
+  }
+}
+updateSyncStatusUI();
 
 btnSaveSettings.addEventListener("click", () => {
   mwaApiKey = inputApiKey.value.trim();
   localStorage.setItem("mwa_api_key", mwaApiKey);
-  alert("✅ API Key 已安全儲存！");
+  
+  syncUsername = inputSyncUsername.value.trim();
+  syncKey = inputSyncKey.value.trim();
+  syncBin = inputSyncBin.value.trim();
+  
+  localStorage.setItem("sync_username", syncUsername);
+  localStorage.setItem("sync_key", syncKey);
+  localStorage.setItem("sync_bin", syncBin);
+  
+  updateSyncStatusUI();
+  
+  alert("✅ 設定已安全儲存本機！\n(若有更動雲端參數，請記得手動點擊同步按鈕確認連線)");
   showView(viewHome);
+});
+
+// JSONBin.io API Sync
+btnSyncUp.addEventListener("click", async () => {
+  const mKey = inputSyncKey.value.trim();
+  let bId = inputSyncBin.value.trim();
+  if (!mKey) return alert("請先填寫 JSONBin Master Key！");
+  
+  btnSyncUp.disabled = true;
+  btnSyncUp.textContent = "⏳ 上傳中...";
+  
+  try {
+    if (!bId) {
+      // Create new bin
+      const res = await fetch("https://api.jsonbin.io/v3/b", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": mKey,
+          "X-Bin-Name": "lingolearn_sync"
+        },
+        body: JSON.stringify(vocabs)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        bId = data.metadata.id;
+        inputSyncBin.value = bId;
+        syncBin = bId;
+        localStorage.setItem("sync_bin", bId);
+        updateSyncStatusUI();
+        alert(`✅ 雲端空間建立成功！\n您的 Bin ID: ${bId}\n(請妥善保管，後續在其他設備需輸入此 ID 以登入)`);
+      } else {
+        alert("❌ 建立失敗: " + (data.message || "未知的 API 錯誤"));
+      }
+    } else {
+      // Update existing bin
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${bId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": mKey
+        },
+        body: JSON.stringify(vocabs)
+      });
+      if (res.ok) {
+        alert("✅ 成功將本地單字庫備份覆蓋至雲端！");
+      } else {
+        const data = await res.json();
+        alert("❌ 備份失敗: " + (data.message || "未知的 API 錯誤"));
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ 網路錯誤或無法連線，請檢查網路狀態。");
+  } finally {
+    btnSyncUp.disabled = false;
+    btnSyncUp.textContent = "📤 覆蓋備份至雲端";
+  }
+});
+
+btnSyncDown.addEventListener("click", async () => {
+  const mKey = inputSyncKey.value.trim();
+  let bId = inputSyncBin.value.trim();
+  if (!mKey || !bId) return alert("請確認 JSONBin Master Key 與 Bin ID 皆已填寫！");
+  
+  btnSyncDown.disabled = true;
+  btnSyncDown.textContent = "⏳ 下載中...";
+  
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${bId}/latest`, {
+      method: "GET",
+      headers: {
+        "X-Master-Key": mKey
+      }
+    });
+    const data = await res.json();
+    
+    if (res.ok && data.record && Array.isArray(data.record)) {
+      if (confirm(`雲端共找到 ${data.record.length} 筆單字資料。\n請問要將雲端資料「覆蓋」目前本地資料，還是「合併」？\n\n[確定] = 完全覆蓋本地\n[取消] = 合併 (無重複的單字加進來)`)) {
+        vocabs = data.record;
+      } else {
+        // Merge!
+        let added = 0;
+        data.record.forEach(cloudWord => {
+          const exists = vocabs.find(v => v.word.toLowerCase() === cloudWord.word.toLowerCase());
+          if (!exists) {
+            vocabs.push(cloudWord);
+            added++;
+          }
+        });
+        alert(`已成功將雲端的 ${added} 筆新單字合併至本地！`);
+      }
+      saveVocabs();
+    } else {
+      alert("❌ 下載失敗: " + (data.message || "遠端資料格式錯誤"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ 網路錯誤或無法連線，請檢查網路狀態。");
+  } finally {
+    btnSyncDown.disabled = false;
+    btnSyncDown.textContent = "📥 從雲端下載合併";
+  }
 });
 
 // --- Sentence Parsing Logic ---

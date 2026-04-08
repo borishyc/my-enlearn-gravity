@@ -175,15 +175,47 @@
     <div id="view-settings" class="view hidden">
       <header class="view-header">
         <button class="back-btn" id="btn-back-settings">⬅ 返回首頁</button>
-        <h2>設定</h2>
+        <h2>登入與設定</h2>
       </header>
       <div class="add-vocab-form">
+        
+        <h3 style="margin-bottom: 15px; color: #333; font-size: 1.2rem;">☁️ 雲端同步 (跨裝置登入)</h3>
+        <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px; line-height: 1.5; background: rgba(9, 132, 227, 0.1); padding: 10px; border-radius: 8px;">
+          透過免費的 <a href="https://jsonbin.io/" target="_blank" style="color: #0984e3; font-weight: bold;">JSONBin.io</a> 服務，您可以在不同設備間同步單字庫資料。<br>
+          <span style="font-size: 0.85rem;">(👉 首次使用：註冊 jsonbin.io 後，建立並貼上 Master Key，點擊「備份至雲端」以產生 Bin ID。在第二台設備上登入時，輸入同樣的 Master Key 以及剛獲得的 Bin ID，點擊「從雲端下載」即可完成同步！)</span>
+        </p>
+
+        <div class="form-group">
+          <label for="input-sync-username">使用者帳號 (僅作顯示識別)</label>
+          <input type="text" id="input-sync-username" placeholder="例如：LingoUser">
+        </div>
+        <div class="form-group">
+          <label for="input-sync-key">JSONBin Master Key <span style="color: red;">*</span></label>
+          <input type="password" id="input-sync-key" placeholder="貼上您的 API Key">
+        </div>
+        <div class="form-group">
+          <label for="input-sync-bin">Bin ID (新建時留白，同步登入時必填)</label>
+          <input type="text" id="input-sync-bin" placeholder="貼上您的 Bin ID">
+        </div>
+
+        <div id="sync-status" style="margin-bottom: 15px; font-size: 0.95rem; font-weight: bold; color: #d63031; text-align: center; padding: 10px; background: rgba(214, 48, 49, 0.1); border-radius: 8px;">
+          ⚪ 狀態：未綁定雲端
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 30px;">
+          <button type="button" class="submit-btn" id="btn-sync-down" style="flex: 1; background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); font-size: 0.9rem;">📥 從雲端下載合併</button>
+          <button type="button" class="submit-btn" id="btn-sync-up" style="flex: 1; background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%); font-size: 0.9rem;">📤 覆蓋備份至雲端</button>
+        </div>
+
+        <hr class="divider">
+
+        <h3 style="margin-bottom: 15px; color: #333; font-size: 1.2rem;">字典 API 設定</h3>
         <div class="form-group">
           <label for="input-api-key">Merriam-Webster API Key (Collegiate Dictionary)</label>
           <input type="password" id="input-api-key" placeholder="貼上您的 API Key">
           <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">系統會將此金鑰安全地儲存於您的瀏覽器中。</p>
         </div>
-        <button type="button" class="submit-btn" id="btn-save-settings">💾 儲存設定</button>
+        <button type="button" class="submit-btn" id="btn-save-settings">💾 儲存本機設定</button>
       </div>
     </div>
 
