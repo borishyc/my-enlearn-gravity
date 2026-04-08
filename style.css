@@ -155,10 +155,22 @@ h1 {
 }
 
 .card-back .meaning {
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #6c5ce7;
   margin-bottom: 15px;
+}
+
+.example-container {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 15px 20px;
+  border-radius: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 120px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-back .example {
@@ -167,11 +179,7 @@ h1 {
   color: var(--text-main);
   line-height: 1.5;
   text-align: left;
-  background: rgba(255, 255, 255, 0.3);
-  padding: 15px;
-  border-radius: 12px;
-  width: 90%;
-  margin-bottom: 10px;
+  width: 100%;
 }
 
 .card-back .example-header {

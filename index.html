@@ -35,6 +35,11 @@
           <h3>新增單字</h3>
           <p>擴充詞彙，客製化您的專屬單字庫</p>
         </div>
+        <div class="menu-card" id="btn-go-import-vocab">
+          <div class="menu-icon">📥</div>
+          <h3>批量匯入</h3>
+          <p>貼上單字清單，自動建立卡片與例句</p>
+        </div>
       </div>
     </div>
 
@@ -64,7 +69,10 @@
           </div>
           <div class="card-face card-back">
             <div id="card-back-meaning" class="meaning">意思</div>
-            <div id="card-back-example" class="example">Example sentence.</div>
+            <div class="example-container">
+              <div id="card-back-tenses" class="tenses-phrases" style="display: none; font-size: 0.95rem; color: #0984e3; margin-bottom: 10px; font-weight: 500; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 8px; white-space: pre-wrap;"></div>
+              <div id="card-back-example" class="example">Example sentence.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -123,6 +131,10 @@
             <input type="text" id="preview-meaning" placeholder="載入中...">
           </div>
           <div class="form-group">
+            <label>動詞三態 / 片語</label>
+            <textarea id="preview-tenses" rows="2" style="resize: vertical;" placeholder="例如：go - went - gone 或相關片語 (選填)"></textarea>
+          </div>
+          <div class="form-group">
             <label>例句</label>
             <div style="display: flex; gap: 8px;">
               <textarea id="preview-example-sentence" rows="2" style="flex: 1; resize: none;"></textarea>
@@ -134,6 +146,27 @@
             <textarea id="preview-example-trans" rows="2" style="resize: none;"></textarea>
           </div>
           <button type="button" class="submit-btn" id="btn-confirm-add" disabled>✅ 確認加入字卡</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 批量匯入 Import Vocab View -->
+    <div id="view-import-vocab" class="view hidden">
+      <header class="view-header">
+        <button class="back-btn" id="btn-back-import-vocab">⬅ 返回首頁</button>
+        <h2>批量匯入單字</h2>
+      </header>
+      
+      <div class="add-vocab-form">
+        <div class="form-group">
+          <label for="input-import-words">請貼上英文單字清單 (可用換行或逗號分隔)</label>
+          <textarea id="input-import-words" rows="6" placeholder="例如：&#10;apple&#10;breathtaking&#10;fascinate" required></textarea>
+        </div>
+        <button type="button" class="submit-btn" id="btn-start-import">🚀 開始匯入</button>
+        
+        <div id="import-progress-container" class="hidden" style="margin-top: 20px;">
+          <h3 style="font-size: 1rem; margin-bottom: 5px;" id="import-progress-text">進度：正在準備...</h3>
+          <textarea id="import-log" rows="6" readonly style="font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: #333; resize: vertical;"></textarea>
         </div>
       </div>
     </div>
@@ -175,6 +208,10 @@
       <div class="form-group">
         <label>中文翻譯</label>
         <input type="text" id="edit-meaning">
+      </div>
+      <div class="form-group">
+        <label>動詞三態 / 片語</label>
+        <textarea id="edit-tenses" rows="2" style="resize: vertical;"></textarea>
       </div>
       <div class="form-group">
         <label>例句清單</label>
